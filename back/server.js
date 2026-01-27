@@ -4,9 +4,10 @@ const mysql = require('mysql2');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 require('dotenv').config();
+console.log(process.env.DB_USER);
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -36,6 +37,15 @@ const jwt = require('jsonwebtoken');
 
 // Middleware de vérification du token
 function verifyToken(req, res, next) {
+
+  // Vérification de sécurité : JWT_SECRET doit exister
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === "") {
+    console.error("ERREUR CRITIQUE : JWT_SECRET est manquant dans le fichier .env");
+    return res.status(500).json({
+      error: "Configuration serveur invalide : clé JWT manquante"
+    });
+  }
+
   const token = req.headers['authorization'];
 
   if (!token) {
@@ -50,6 +60,7 @@ function verifyToken(req, res, next) {
     next();
   });
 }
+module.exports = verifyToken;
 
 // Route pour poster les données
 app.post('/api/login', (req, res) => {
@@ -132,8 +143,8 @@ app.get('/api/gps/all', verifyToken, (req, res) => {
 
 // EMPÊCHER LE CACHE (Important pour le GPS temps réel)
 app.use((req, res, next) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    next();
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
 });
 
 // Route de test pour vérifier les tables

@@ -63,25 +63,45 @@ registerForm.addEventListener("submit", (e) => {
 const loginForm = document.getElementById("loginForm");
 const loginMsg = document.getElementById("loginMsg");
 
-loginForm.addEventListener("submit", (e) => {
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = new FormData(loginForm);
   const username = form.get("username").trim();
   const password = form.get("password");
 
-  const users = getUsers();
-  const user = users[username];
-
-  if (!user) {
-    return setMessage(loginMsg, "Utilisateur introuvable.");
-  }
-  if (user.password !== password) {
-    return setMessage(loginMsg, "Mot de passe incorrect.");
+  if (!username) {
+    return setMessage(loginMsg, "Veuillez entrer un nom d'utilisateur.");
   }
 
-  // Simuler une session
-  localStorage.setItem("currentUser", username);
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ user: username })
+    });
 
-  // Redirection
-  window.location.href = "arduino.html";
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Erreur lors de la connexion.");
+    }
+
+    // Stocker le token
+    localStorage.setItem("token", data.token);
+    // On peut aussi stocker le username si besoin
+    localStorage.setItem("currentUser", username);
+
+    setMessage(loginMsg, "Connexion réussie !", "success");
+
+    // Redirection
+    setTimeout(() => {
+      window.location.href = "arduino.html";
+    }, 1000);
+
+  } catch (err) {
+    console.error(err);
+    setMessage(loginMsg, err.message);
+  }
 });
