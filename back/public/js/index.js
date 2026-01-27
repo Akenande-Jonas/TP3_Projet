@@ -83,5 +83,5 @@ loginForm.addEventListener("submit", (e) => {
   localStorage.setItem("currentUser", username);
 
   // Redirection
-  window.location.href = "map.html";
+  window.location.href = "arduino.html";
 });
