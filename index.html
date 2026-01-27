@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Contrôle Arduino</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #status {
+            margin-top: 20px;
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Arduino LCD</h1>
+
+    <input type="text" id="monTexte" placeholder="Texte à afficher..." maxlength="32">
+    <button onclick="envoyerTexte()">Envoyer</button>
+
+    <div id="status"></div>
+</body>
+
+<script src="script.js"></script>
+
+</html>
