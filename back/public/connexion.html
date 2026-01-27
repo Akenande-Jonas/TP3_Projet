@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Connexion / Inscription</title>
+  <link rel="stylesheet" href="/back/public/css/index.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Bienvenue</h1>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-target="#login">Connexion</button>
+      <button class="tab-btn" data-target="#register">Inscription</button>
+    </div>
+
+    <section id="login" class="panel active">
+      <form id="loginForm">
+        <label>
+          Nom d'utilisateur
+          <input type="text" name="username" required />
+        </label>
+        <label>
+          Mot de passe
+          <input type="password" name="password" required minlength="4" />
+        </label>
+        <button type="submit">Se connecter</button>
+        <p class="msg" id="loginMsg"></p>
+      </form>
+    </section>
+
+    <section id="register" class="panel">
+      <form id="registerForm">
+        <label>
+          Nom d'utilisateur
+          <input type="text" name="username" required />
+        </label>
+        <label>
+          Mot de passe
+          <input type="password" name="password" required minlength="4" />
+        </label>
+        <button type="submit">S'inscrire</button>
+        <p class="msg" id="registerMsg"></p>
+      </form>
+    </section>
+  </main>
+  <script src="/back/public/js/index.js"></script>
+</body>
+</html>

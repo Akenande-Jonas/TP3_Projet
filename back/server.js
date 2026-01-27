@@ -29,7 +29,7 @@ db.getConnection((err, connection) => {
 });
 
 // Middleware
-app.use(express.static('public'));
+app.use('/back/public', express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const jwt = require('jsonwebtoken');
@@ -51,6 +51,7 @@ function verifyToken(req, res, next) {
   });
 }
 
+// Route pour poster les données
 app.post('/api/login', (req, res) => {
   const { user } = req.body;
 
