@@ -2,12 +2,15 @@
 const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
+const cors = require('cors'); // --- NOUVEAU : Import pour éviter les erreurs de sécurité navigateur
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3001; // Note : Votre Python devra viser ce port 3001
 
-require('dotenv').config();
-console.log(process.env.DB_USER);
+// --- NOUVEAU : Variable pour stocker le message LCD (en mémoire vive)
+let messagePourArduino = "";
 
 const db = mysql.createPool({
   host: process.env.DB_HOST,
@@ -30,22 +33,13 @@ db.getConnection((err, connection) => {
 });
 
 // Middleware
+app.use(cors()); // --- NOUVEAU : Autorise toutes les connexions
 app.use('/back/public', express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-
-const jwt = require('jsonwebtoken');
+app.use(express.urlencoded({ extended: true })); // --- NOUVEAU : Permet de lire les formulaires HTML classiques
 
 // Middleware de vérification du token
 function verifyToken(req, res, next) {
-
-  // Vérification de sécurité : JWT_SECRET doit exister
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === "") {
-    console.error("ERREUR CRITIQUE : JWT_SECRET est manquant dans le fichier .env");
-    return res.status(500).json({
-      error: "Configuration serveur invalide : clé JWT manquante"
-    });
-  }
-
   const token = req.headers['authorization'];
 
   if (!token) {
@@ -60,13 +54,47 @@ function verifyToken(req, res, next) {
     next();
   });
 }
-module.exports = verifyToken;
 
-// Route pour poster les données
+// ==========================================
+// --- NOUVEAU : SECTION ARDUINO LCD ---
+// ==========================================
+
+// 1. Route pour que le Python récupère le message (Pas de Token nécessaire pour faire simple)
+app.get('/api/arduino/message', (req, res) => {
+  // On renvoie juste le texte brut, facile à lire pour Python
+  res.send(messagePourArduino);
+});
+
+// 2. Route pour envoyer le message depuis le site Web
+app.post('/api/arduino/envoyer', (req, res) => {
+  // On accepte soit du JSON, soit un formulaire classique
+  const message = req.body.message;
+
+  if (message) {
+    messagePourArduino = message;
+    console.log("Nouveau message LCD reçu : " + messagePourArduino);
+
+    // Si la requête vient d'un formulaire HTML classique, on redirige
+    // Sinon (API/Fetch), on renvoie du JSON
+    if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+      res.redirect('/'); // Redirige vers l'accueil
+    } else {
+      res.json({ status: "OK", text: messagePourArduino });
+    }
+  } else {
+    res.status(400).json({ error: "Message vide" });
+  }
+});
+
+// ==========================================
+// FIN SECTION ARDUINO
+// ==========================================
+
+
+// Route pour poster les données (Login)
 app.post('/api/login', (req, res) => {
   const { user } = req.body;
 
-  // Ici tu peux vérifier un vrai utilisateur dans ta base
   if (!user) {
     return res.status(400).json({ error: 'Utilisateur manquant' });
   }
@@ -83,11 +111,7 @@ app.post('/api/login', (req, res) => {
 // Route pour récupérer les dernières données GPS
 app.get('/api/gps/latest', verifyToken, (req, res) => {
   const query = `
-    SELECT
-      Date,
-      Heure_UTC,
-      Latitude,
-      Longitude
+    SELECT Date, Heure_UTC, Latitude, Longitude
     FROM gps
     ORDER BY CONCAT(Date, ' ', TRIM(Heure_UTC)) DESC
     LIMIT 1
@@ -98,20 +122,13 @@ app.get('/api/gps/latest', verifyToken, (req, res) => {
   db.query(query, (err, results) => {
     if (err) {
       console.error('Erreur de requête SQL:', err);
-      return res.status(500).json({
-        error: 'Erreur serveur',
-        details: err.message
-      });
+      return res.status(500).json({ error: 'Erreur serveur', details: err.message });
     }
 
-    console.log('Résultats:', results);
-
     if (results.length === 0) {
-      console.log('Aucune donnée trouvée');
       return res.status(404).json({ error: 'Aucune donnée trouvée' });
     }
 
-    console.log('Données envoyées:', results[0]);
     res.json(results[0]);
   });
 });
@@ -119,11 +136,7 @@ app.get('/api/gps/latest', verifyToken, (req, res) => {
 // Route pour récupérer toutes les données GPS (limitées à 100)
 app.get('/api/gps/all', verifyToken, (req, res) => {
   const query = `
-    SELECT
-      Date,
-      Heure_UTC,
-      Latitude,
-      Longitude
+    SELECT Date, Heure_UTC, Latitude, Longitude
     FROM gps
     ORDER BY CONCAT(Date, ' ', TRIM(Heure_UTC)) DESC
     LIMIT 100
@@ -131,43 +144,35 @@ app.get('/api/gps/all', verifyToken, (req, res) => {
 
   db.query(query, (err, results) => {
     if (err) {
-      return res.status(500).json({
-        error: 'Erreur serveur',
-        details: err.message
-      });
+      return res.status(500).json({ error: 'Erreur serveur', details: err.message });
     }
-
     res.json(results);
   });
 });
 
-// EMPÊCHER LE CACHE (Important pour le GPS temps réel)
+// EMPÊCHER LE CACHE
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   next();
 });
 
-// Route de test pour vérifier les tables
+// Route de test
 app.get('/api/test', (req, res) => {
-  const query = 'SHOW TABLES';
-
-  db.query(query, (err, results) => {
+  db.query('SHOW TABLES', (err, results) => {
     if (err) {
-      return res.status(500).json({
-        error: 'Erreur',
-        details: err.message
-      });
+      return res.status(500).json({ error: 'Erreur', details: err.message });
     }
     res.json({ tables: results });
   });
 });
 
-// Route principale
+// Route principale (Frontend)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
-  console.log(`API disponible sur http://localhost:${PORT}/api/gps/latest`);
+  console.log(`API GPS disponible sur http://localhost:${PORT}/api/gps/latest`);
+  console.log(`API Arduino disponible sur http://localhost:${PORT}/api/arduino/message`);
 });
