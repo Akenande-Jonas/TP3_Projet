@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Contrôle</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <header class="header">
+            <h1>Contrôle Arduino</h1>
+            <button id="logoutBtn" class="logout-btn">Déconnexion</button>
+        </header>
+
+        <div class="control-panel">
+            <section class="card">
+                <h2>Envoyer un message</h2>
+                <form id="messageForm">
+                    <div class="message-input-group">
+                        <input type="text" id="messageInput" placeholder="Entrez votre message (max 32 chars)..."
+                            maxlength="32" required autocomplete="off">
+                        <button type="submit" class="btn-primary">Envoyer</button>
+                    </div>
+                </form>
+                <div id="statusMessage" class="status-display"></div>
+            </section>
+
+            <section class="card">
+                <h2>Données GPS (Sécurisé)</h2>
+                <div id="gpsData" style="color: #718096; padding: 1rem; background: #f8fafc; border-radius: 6px;">
+                    En attente de données...
+                </div>
+                <button id="refreshGps" class="btn-primary"
+                    style="margin-top: 1rem; font-size: 0.9rem; padding: 8px 16px;">Actualiser</button>
+            </section>
+        </div>
+    </div>
+    <script src="chat.js"></script>
+</body>
+
+</html>
