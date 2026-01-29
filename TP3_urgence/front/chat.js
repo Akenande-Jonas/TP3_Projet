@@ -11,14 +11,14 @@ const logoutBtn = document.getElementById('logoutBtn');
 const gpsData = document.getElementById('gpsData');
 const refreshGps = document.getElementById('refreshGps');
 
-// Logout functionality
+// Déconnexion
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = 'index.html';
 });
 
-// Handle message sending
+// Envoie du méssage
 messageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = messageInput.value;
@@ -28,7 +28,7 @@ messageForm.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // In case we add auth middleware later
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ message })
         });
@@ -45,10 +45,10 @@ messageForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Placeholder for GPS functionality
+// Fonctionalité GPS
 refreshGps.addEventListener('click', () => {
     gpsData.textContent = 'Chargement des coordonnées...';
-    // Simulate GPS fetch or implement real endpoint later
+    // Simulation du GPS
     setTimeout(() => {
         gpsData.textContent = 'Latitude: 48.8566, Longitude: 2.3522 (Simulé)';
     }, 1000);
@@ -58,7 +58,6 @@ function showStatus(text, type) {
     statusMessage.textContent = text;
     statusMessage.className = `status-display ${type}`;
 
-    // Auto hide success message
     if (type === 'success') {
         setTimeout(() => {
             statusMessage.style.display = 'none';
