@@ -34,7 +34,7 @@ db.getConnection((err, connection) => {
 
 // Middleware
 app.use(cors()); // --- NOUVEAU : Autorise toutes les connexions
-app.use('/back/public', express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // --- NOUVEAU : Permet de lire les formulaires HTML classiques
 

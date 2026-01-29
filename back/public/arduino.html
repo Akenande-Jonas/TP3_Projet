@@ -28,13 +28,25 @@
 <body>
 
     <h1>Arduino LCD</h1>
-
-    <input type="text" id="monTexte" placeholder="Texte à afficher..." maxlength="32">
-    <button onclick="envoyerTexte()">Envoyer</button>
+    <form id="arduinoForm">
+        <input type="text" id="messageInput" name="message" placeholder="Votre texte ici..." required maxlength="32"
+            autocomplete="off">
+        <button type="submit">Envoyer à l'Arduino</button>
+    </form>
 
     <div id="status"></div>
+
+    <hr style="margin: 30px 0;">
+
+    <div id="gps-section">
+        <h2>Données GPS (Sécurisé)</h2>
+        <div id="gps-data">Chargement...</div>
+        <button id="refreshGpsBtn"
+            style="margin-top: 10px; background: #007bff; color: white; border: none; cursor: pointer;">Actualiser
+            GPS</button>
+    </div>
 </body>
 
-<script src="/back/public/js/script.js"></script>
+<script src="/js/script.js"></script>
 
 </html>
